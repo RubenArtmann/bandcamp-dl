@@ -5,5 +5,5 @@
 
     where ```<bandcamp_url>``` can be:
 	* ```https://<artist>.bandcamp.com```
-	* ``https://<artist>.bandcamp.com/album/<album>```
-	* ``https://<artist>.bandcamp.com/track/<track>```
+	* ```https://<artist>.bandcamp.com/album/<album>```
+	* ```https://<artist>.bandcamp.com/track/<track>```
