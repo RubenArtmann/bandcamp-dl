@@ -13,4 +13,4 @@
 (if it crashes just rerun and it should skip already downloaded tracks)
 
 ### repository
-feel free to open new issues if you have any feature requests or ran into any problems or questions
+if you have any feature requests or ran into any problems or questions, feel free to open an issue
