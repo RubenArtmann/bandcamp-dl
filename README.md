@@ -1,4 +1,5 @@
 # bandcamp-dl
+### usage
 1. download Deno from [here](https://deno.land/#installation)
 2. make sure you have curl installed
 3. run ```deno run --allow-net --allow-run --allow-read https://raw.githubusercontent.com/RubenArtmann/bandcamp-dl/main/mod.ts <bandcamp_urls>```
@@ -10,3 +11,6 @@
 4. the result will be saved in ./downloads (relative to cwd)
 
 (if it crashes just rerun and it should skip already downloaded tracks)
+
+### repository
+feel free to open new issues if you have any feature requests or ran into any problems or questions
