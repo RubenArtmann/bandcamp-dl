@@ -8,7 +8,7 @@
 	* ```https://<artist>.bandcamp.com``` (download whole artist)
 	* ```https://<artist>.bandcamp.com/album/<album>``` (download whole album)
 	* ```https://<artist>.bandcamp.com/track/<track>``` (download track)
-4. the result will be saved in ./downloads (relative to cwd)
+4. the result will be saved in ```./downloads/<artist> - <title>.mp3``` (relative to cwd)
 
 (if it crashes just rerun and it should skip already downloaded tracks)
 
