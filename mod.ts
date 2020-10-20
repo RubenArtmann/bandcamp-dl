@@ -8,7 +8,16 @@ function sleep(time:number) {
     });
 }
 
-let urlPool = [...Deno.args];
+let urlPool: string[] = [];
+let pattern = "./downloads/{artist}/{album}/{track}";
+for(let i=0; i<Deno.args.length; i++) {
+	let arg = Deno.args[i];
+	if(arg.startsWith("-o=")) {
+		pattern = arg.slice(3);
+	}  else  {
+		urlPool.push(arg);
+	}
+}
 if(urlPool.length<1) throw new Error("No Url given!");
 
 const dump = (url: string,msg="")=>{
@@ -22,11 +31,12 @@ const dump = (url: string,msg="")=>{
 
 while(urlPool.length>0) {
 	let url = urlPool.shift() as string;
-	let result = url.match(/^https?:\/\/([^.]+).bandcamp.com\/?(?:(album|track)\/([^#\/?]+))?$/);
+	let result = url.match(/^https?:\/\/([^.]+).bandcamp.com\/?(?:(album|track)\/([^#\/?]+))?(\#[\s\S]*)?$/);
 	if(!result) throw new Error(url);
 	let artist = result[1];
 	let urlType = result[2];
 	let id = result[3];
+	let hash = result[4];
 	// console.log(url,artist,urlType,id);
 	switch (urlType) {
 		case "album":
@@ -34,12 +44,18 @@ while(urlPool.length>0) {
 			let string = await r.text();
 			let result = string.match(/track\/[^\"?&#]+/g);
 			if(!result) throw dump(url);
-			let tracks = result.filter((v:string,i:number,a:string[])=>a.indexOf(v)===i).map((t)=>`https://${artist}.bandcamp.com/${t}`);
+			let tracks = result.filter((v:string,i:number,a:string[])=>a.indexOf(v)===i).map((t)=>`https://${artist}.bandcamp.com/${t}#album=${id}`);
 			urlPool.push(...tracks);
 		break;
 		case "track":{
-			let title = `${artist} - ${id.replace(/-/g," ")}`;
-			let path = "./downloaded/"+title+".mp3";
+			let album = "unknown";
+			let array = hash.slice(1).split("#");
+			for(let i=0; i<array.length; i++) {
+				if(array[i].startsWith("album=")) album = array[i].slice(6).replace(/-/g," ");
+			}
+
+			let track = id.replace(/-/g," ");
+			let path = pattern.replace(/{artist}/g,artist).replace(/{album}/g,album).replace(/{track}/g,track)+".mp3";
 			if(await exists(path)) {
 				console.log("skipping:",path);
 				continue;
@@ -53,7 +69,7 @@ while(urlPool.length>0) {
 			let fileUrl = result[0];
 			console.log(fileUrl);
 			let p = Deno.run({
-			  cmd: ["curl", "--create-dirs", "-o", path, fileUrl],
+				cmd: ["curl", "--create-dirs", "-o", path, fileUrl],
 			});
 			await p.status();
 		}
@@ -74,7 +90,7 @@ while(urlPool.length>0) {
 	let albums = 0;
 	let tracks = 0;
 	for(let i=0; i<urlPool.length; i++) {
-		let result = urlPool[i].match(/^https?:\/\/([^.]+).bandcamp.com\/?(?:(album|track)\/([^#\/?]+))?$/);
+		let result = urlPool[i].match(/^https?:\/\/([^.]+).bandcamp.com\/?(?:(album|track)\/([^#\/?]+))?(\#[\s\S]*)?$/);
 		if(!result) throw dump(url);
 		let artist = result[1];
 		let urlType = result[2];
