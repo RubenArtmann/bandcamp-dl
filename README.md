@@ -7,12 +7,14 @@
 		* ```o=<pattern>```
 			* specifies the path and filename of each track (extension is always ```.mp3```)
 			* default: ```./downloads/{artist}/{album}/{track}```
-			* ```{<property>}``` gets replaced by the specific property of the file being downloaded 
+			* ```{<label|artist|album|track>}``` gets replaced by the specific property of the file being downloaded 
 	* where ```<bandcamp_urls>``` can be any number of:
+		* ```https://<label>.bandcamp.com/artists``` (download whole label)
 		* ```https://<artist>.bandcamp.com``` (download whole artist)
 		* ```https://<artist>.bandcamp.com/album/<album>``` (download whole album)
 		* ```https://<artist>.bandcamp.com/track/<track>``` (download track)
-			* ```https://<artist>.bandcamp.com/track/<track>#album=<album>``` so it knows the album of the file, otherwise ```{album}``` is ```unknown```
+		* append ```#album=<album>``` so it knows the album of the file, otherwise ```{album}``` is ```unknown```
+		* append ```#label=<label>``` so it knows the label of the file, otherwise ```{label}``` is ```unknown```
 4. the result will be saved in ```./downloads/<artist> - <title>.mp3``` (relative to cwd)
 
 (if it crashes just rerun and it should skip already downloaded tracks)
