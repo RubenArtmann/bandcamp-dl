@@ -13,8 +13,8 @@
 		* ```https://<artist>.bandcamp.com``` (download whole artist)
 		* ```https://<artist>.bandcamp.com/album/<album>``` (download whole album)
 		* ```https://<artist>.bandcamp.com/track/<track>``` (download track)
-		* append ```#album=<album>``` so it knows the album of the file, otherwise ```{album}``` is ```unknown```
-		* append ```#label=<label>``` so it knows the label of the file, otherwise ```{label}``` is ```unknown```
+		* append ```#album=<album>``` so it knows the album of the file, otherwise ```{album}``` may be ```unknown```
+		* append ```#label=<label>``` so it knows the label of the file, otherwise ```{label}``` may be ```unknown```
 4. the result will be saved in ```./downloads/<artist> - <title>.mp3``` (relative to cwd)
 
 (if it crashes just rerun and it should skip already downloaded tracks)
