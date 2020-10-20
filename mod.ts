@@ -36,7 +36,7 @@ while(urlPool.length>0) {
 	let artist = result[1];
 	let urlType = result[2];
 	let id = result[3];
-	let hash = result[4];
+	let hash = result[4] || "";
 	// console.log(url,artist,urlType,id);
 	switch (urlType) {
 		case "artists":{// this is a label
