@@ -4,6 +4,8 @@
 2. make sure you have curl installed
 3. run ```deno run --allow-net --allow-run --allow-read https://raw.githubusercontent.com/RubenArtmann/bandcamp-dl/main/mod.ts <args> <bandcamp_urls>```
 	* where ```<args>``` can be:
+		* ```d=<integer>```
+			* delay in milliseconds between requests
 		* ```o=<pattern>```
 			* specifies the path and filename of each track (extension is always ```.mp3```)
 			* default: ```./downloads/{artist}/{album}/{track}```
