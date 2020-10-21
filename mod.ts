@@ -4,6 +4,12 @@ import he from "https://jspm.dev/npm:he@1.2.0!cjs";
 
 const sleep = (time: number)=>new Promise(resolve=>setTimeout(resolve, time));
 
+const download = async(url: string, path: string)=>{
+	let r = await fetch(url);
+	Deno.mkdirSync(path.split("/").slice(0,-1).join("/"), { recursive: true });
+	Deno.writeFileSync(path,new Uint8Array(await r.arrayBuffer()));
+};
+
 const logStatus = (urlPool: string[])=>{
 	let labels = 0;
 	let artists = 0;
@@ -119,11 +125,8 @@ while(urlPool.length>0) {
 				console.warn(`already downloaded ${path} from ${url}: skipping.`);
 				continue;
 			}
-
-			let p = Deno.run({
-				cmd: ["curl", "--create-dirs", "-o", path, fileUrl],
-			});
-			await p.status();
+			
+			await download(fileUrl,path);
 		}
 		break;
 		

@@ -9,6 +9,6 @@
   "allow": [
     "read",
     "net",
-    "run"
+    "write"
   ]
 }
