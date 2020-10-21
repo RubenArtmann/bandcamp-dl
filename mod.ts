@@ -1,5 +1,7 @@
 import { exists } from "https://deno.land/std@0.74.0/fs/exists.ts";
 
+import he from "https://jspm.dev/npm:he@1.2.0!cjs";
+
 function sleep(time:number) {
     return new Promise(resolve => {
         setTimeout(() => {
@@ -60,17 +62,12 @@ while(urlPool.length>0) {
 		case "track":{
 			let label = "unknown";
 			let album = "unknown";
+			let track = id.replace(/-/g," ");
+
 			let array = hash.slice(1).split("#");
 			for(let i=0; i<array.length; i++) {
 				if(array[i].startsWith("album=")) album = array[i].slice(6).replace(/-/g," ");
 				if(array[i].startsWith("label=")) label = array[i].slice(6).replace(/-/g," ");
-			}
-
-			let track = id.replace(/-/g," ");
-			let path = pattern.replace(/{label}/g,label).replace(/{artist}/g,artist).replace(/{album}/g,album).replace(/{track}/g,track)+".mp3";
-			if(await exists(path)) {
-				console.log("skipping:",path);
-				continue;
 			}
 
 			let r = await fetch(url);
@@ -80,6 +77,20 @@ while(urlPool.length>0) {
 			if(result.length!==1) throw dump(url);
 			let fileUrl = result[0];
 			console.log(fileUrl);
+
+			let optionalOverwrites = string.match(/<div id="name-section">\s*<h2 class="trackTitle">\s*([^<]+?)\s*<\/h2>\s*<h3 class="albumTitle">\s*from\s*<span>\s*<a href="[^"]+"><span class="fromAlbum">([^<]+)<\/span><\/a><\/span>\s*by\s*<span>\s*<a href="[^"]+">([^<]+)<\/a>/)
+			if(optionalOverwrites) {
+				track = he.decode(optionalOverwrites[1]);
+				album = he.decode(optionalOverwrites[2]);
+				artist = he.decode(optionalOverwrites[3]);
+			}  else console.warn(`overwrites failed on: ${url}`);
+
+			let path = pattern.replace(/{label}/g,label).replace(/{artist}/g,artist).replace(/{album}/g,album).replace(/{track}/g,track)+".mp3";
+			if(await exists(path)) {
+				console.log("skipping:",path);
+				continue;
+			}
+
 			let p = Deno.run({
 				cmd: ["curl", "--create-dirs", "-o", path, fileUrl],
 			});
