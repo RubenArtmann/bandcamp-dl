@@ -24,4 +24,5 @@
 running ```deno cache --reload https://raw.githubusercontent.com/RubenArtmann/bandcamp-dl/main/mod.ts``` upgrades to latest version
 
 ### repository
-if you have any feature requests or ran into any problems or questions, feel free to open an issue
+If you have any feature requests or ran into any problems or questions, feel free to open an issue.
+However please open one issue per request/problem.
