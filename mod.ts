@@ -2,6 +2,26 @@ import { exists } from "https://deno.land/std@0.74.0/fs/exists.ts";
 
 import he from "https://jspm.dev/npm:he@1.2.0!cjs";
 
+import slug from "https://jspm.dev/limax";
+
+let urlPool: string[] = [];
+let pattern = "./downloads/{artist}/{album}/{track}";
+let delay = 300;
+let slugify = false;
+for(let i=0; i<Deno.args.length; i++) {
+	let arg = Deno.args[i];
+	if(arg.startsWith("-o=")) {
+		pattern = arg.slice(3);
+	}  else  if(arg.startsWith("-d=")) {
+		delay = parseInt(arg.slice(3));
+	}  else  if(arg.startsWith("-s")) {
+		slugify = !slugify;
+	}  else  {
+		urlPool.push(arg);
+	}
+}
+if(urlPool.length<1) throw new Error("No Url given!");
+
 const sleep = (time: number)=>new Promise(resolve=>setTimeout(resolve, time));
 
 const download = async(url: string, path: string)=>{
@@ -10,7 +30,18 @@ const download = async(url: string, path: string)=>{
 	Deno.writeFileSync(path,new Uint8Array(await r.arrayBuffer()));
 };
 
-const sanitizeFileName = (string: string)=>string.replace(/[\|\\\/]/g,"I").replace(/\s/g,"_").replace(/[<>\?\*\:\"]/g,"").replace(/^\.*$/,"dots").replace(/^\-/,"");
+const sanitizeFileName = (string: string)=>{
+	string = string.replace(/[\|\\\/]/g,"I");
+	if(slugify) {
+		string = slug(string,{
+			maintainCase: true,
+			custom: ["'","(",")","+",",",";","=","#","[","]","@"]
+		});
+	}
+	string = string.replace(/\s/g,"_").replace(/[<>\?\*\:\"]/g,"").replace(/^\-/,"").replace(/^\.*$/,"dots");
+	return string;
+};
+
 
 const logStatus = (urlPool: string[])=>{
 	let labels = 0;
@@ -33,21 +64,6 @@ const logStatus = (urlPool: string[])=>{
 	}
 	console.log(`[todo] labels: ${labels} artists: ${artists}, albums: ${albums}, tracks: ${tracks}`);
 };
-
-let urlPool: string[] = [];
-let pattern = "./downloads/{artist}/{album}/{track}";
-let delay = 300;
-for(let i=0; i<Deno.args.length; i++) {
-	let arg = Deno.args[i];
-	if(arg.startsWith("-o=")) {
-		pattern = arg.slice(3);
-	}  else  if(arg.startsWith("-d=")) {
-		delay = parseInt(arg.slice(3));
-	}  else  {
-		urlPool.push(arg);
-	}
-}
-if(urlPool.length<1) throw new Error("No Url given!");
 
 let urlPoolRegexp = /^https?:\/\/([^.]+)\.bandcamp\.com\/?(artists|album|track)?(?:\/([^\#\/?]+))?(\#[\s\S]*)?$/
 
