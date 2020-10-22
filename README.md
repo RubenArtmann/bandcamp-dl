@@ -3,13 +3,16 @@
 1. download Deno from [here](https://deno.land/#installation)
 2. run ```deno run --allow-net --allow-read --allow-write https://raw.githubusercontent.com/RubenArtmann/bandcamp-dl/main/mod.ts <args> <bandcamp_urls>```
 	* where ```<args>``` can be:
-		* ```d=<integer>```
+		* ```-d=<integer>```
 			* delay in milliseconds between requests
 			* default: ```300```
-		* ```o=<pattern>```
+		* ```-o=<pattern>```
 			* specifies the path and filename of each track (extension is always ```.mp3```)
 			* default: ```./downloads/{artist}/{album}/{track}```
 			* ```{<label|artist|album|track>}``` gets replaced by the specific property of the file being downloaded 
+		* ```-s```
+			* enables slugification of filenames
+			* use if your filesystem does not support unicode (or you do not want it)
 	* where ```<bandcamp_urls>``` can be any number of:
 		* ```https://<label>.bandcamp.com/artists``` (download whole label)
 		* ```https://<artist>.bandcamp.com``` (download whole artist)
