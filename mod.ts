@@ -10,6 +10,8 @@ const download = async(url: string, path: string)=>{
 	Deno.writeFileSync(path,new Uint8Array(await r.arrayBuffer()));
 };
 
+const sanitizeFileName = (string: string)=>string.replace(/[\|\\\/]/g,"I").replace(/\s/g,"_").replace(/[<>\?\*\:\"]/g,"").replace(/^\.*$/,"dots").replace(/^\-/,"");
+
 const logStatus = (urlPool: string[])=>{
 	let labels = 0;
 	let artists = 0;
@@ -115,9 +117,9 @@ while(urlPool.length>0) {
 
 			let optionalOverwrites = string.match(/<div id="name-section">\s*<h2 class="trackTitle">\s*([^<]+?)\s*<\/h2>\s*<h3 class="albumTitle">\s*from\s*<span>\s*<a href="[^"]+"><span class="fromAlbum">([^<]+)<\/span><\/a><\/span>\s*by\s*<span>\s*<a href="[^"]+">([^<]+)<\/a>/)
 			if(optionalOverwrites) {
-				track = he.decode(optionalOverwrites[1]).replace(/\//g,"|");
-				album = he.decode(optionalOverwrites[2]).replace(/\//g,"|");
-				artist = he.decode(optionalOverwrites[3]).replace(/\//g,"|");
+				track = sanitizeFileName(he.decode(optionalOverwrites[1]));
+				album = sanitizeFileName(he.decode(optionalOverwrites[2]));
+				artist = sanitizeFileName(he.decode(optionalOverwrites[3]));
 			}  else console.warn(`overwrites failed on: ${url}`);
 
 			let path = pattern.replace(/{label}/g,label).replace(/{artist}/g,artist).replace(/{album}/g,album).replace(/{track}/g,track)+".mp3";
@@ -125,7 +127,7 @@ while(urlPool.length>0) {
 				console.warn(`already downloaded ${path} from ${url}: skipping.`);
 				continue;
 			}
-			
+
 			await download(fileUrl,path);
 		}
 		break;
