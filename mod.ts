@@ -131,10 +131,10 @@ while(urlPool.length>0) {
 			}
 			let fileUrl = result[0];
 
-			let optionalOverwrites = string.match(/<div id="name-section">\s*<h2 class="trackTitle">\s*([^<]+?)\s*<\/h2>\s*<h3 class="albumTitle">\s*from\s*<span>\s*<a href="[^"]+"><span class="fromAlbum">([^<]+)<\/span><\/a><\/span>\s*by\s*<span>\s*<a href="[^"]+">([^<]+)<\/a>/)
+			let optionalOverwrites = string.match(/<div id="name-section">\s*<h2 class="trackTitle">\s*([^<]+?)\s*<\/h2>\s*<h3 class="albumTitle">\s*(?:from\s*<span>\s*<a href="[^"]+"><span class="fromAlbum">([^<]+)<\/span><\/a><\/span>\s*)?by\s*<span>\s*<a href="[^"]+">([^<]+)<\/a>/)
 			if(optionalOverwrites) {
 				track = sanitizeFileName(he.decode(optionalOverwrites[1]));
-				album = sanitizeFileName(he.decode(optionalOverwrites[2]));
+				if(optionalOverwrites[2]) album = sanitizeFileName(he.decode(optionalOverwrites[2]));
 				artist = sanitizeFileName(he.decode(optionalOverwrites[3]));
 			}  else console.warn(`overwrites failed on: ${url}`);
 
