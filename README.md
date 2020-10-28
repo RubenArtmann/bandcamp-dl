@@ -1,9 +1,9 @@
 # bandcamp-dl
 ### install
 1. download Deno from [here](https://deno.land/#installation)
-2. run ```deno install --name=bandcamp-dl --allow-net --allow-read --allow-write https://raw.githubusercontent.com/RubenArtmann/bandcamp-dl/main/mod.ts```
+2. run ```deno install --name=bandcamp-dl --allow-net --allow-read --allow-write --no-check https://raw.githubusercontent.com/RubenArtmann/bandcamp-dl/main/mod.ts```
 3. you might need to check if your path is configured correctly
-(alternatively you can directly use it with ```deno run --allow-net --allow-read --allow-write https://raw.githubusercontent.com/RubenArtmann/bandcamp-dl/main/mod.ts```)
+(alternatively you can directly use it with ```deno run --allow-net --allow-read --allow-write --no-check https://raw.githubusercontent.com/RubenArtmann/bandcamp-dl/main/mod.ts```)
 ### usage
 run ```bandcamp-dl <args> <bandcamp_urls>```
 * where ```<args>``` can be:
@@ -28,7 +28,7 @@ run ```bandcamp-dl <args> <bandcamp_urls>```
 (if it crashes just rerun and it should skip already downloaded tracks)
 
 ### upgrade
-running ```deno install -fr --name=bandcamp-dl --allow-net --allow-read --allow-write https://raw.githubusercontent.com/RubenArtmann/bandcamp-dl/main/mod.ts``` upgrades to latest version
+running ```deno install -fr --name=bandcamp-dl --allow-net --allow-read --allow-write --no-check https://raw.githubusercontent.com/RubenArtmann/bandcamp-dl/main/mod.ts``` upgrades to latest version
 
 ### repository
 If you have any feature requests or ran into any problems or questions, feel free to open an issue.
