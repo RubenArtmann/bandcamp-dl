@@ -1,8 +1,10 @@
 import { exists } from "https://deno.land/std@0.74.0/fs/exists.ts";
 
-import he from "https://jspm.dev/npm:he@1.2.0!cjs";
+import _he from "https://jspm.dev/npm:he@1.2.0!cjs";
+const he = _he as {decode: (string:string)=>string};
 
-import slug from "https://jspm.dev/limax";
+import _slug from "https://jspm.dev/limax";
+const slug = _slug as (string: string,options: {})=>string;
 
 let urlPool: string[] = [];
 let pattern = "./downloads/{artist}/{album}/{track}";
@@ -42,7 +44,7 @@ const sanitizeFileName = (string: string)=>{
 	return string;
 };
 
-
+const log = (...args:any[])=>console.log("\n"+args[0],...args.slice(1));
 const logStatus = (urlPool: string[])=>{
 	let labels = 0;
 	let artists = 0;
@@ -51,7 +53,7 @@ const logStatus = (urlPool: string[])=>{
 	for(let i=0; i<urlPool.length; i++) {
 		let result = urlPool[i].match(urlPoolRegexp);
 		if(!result) {
-			console.warn(`could not understand ${urlPool[i]}: skipping.`);
+			log(`could not understand ${urlPool[i]}: skipping.`);
 			continue;
 		}
 		let artist = result[1];
@@ -62,7 +64,7 @@ const logStatus = (urlPool: string[])=>{
 		if(urlType === "album") albums++;
 		if(urlType === "track") tracks++;
 	}
-	console.log(`[todo] labels: ${labels} artists: ${artists}, albums: ${albums}, tracks: ${tracks}`);
+	Deno.stdout.writeSync(new TextEncoder().encode(`\r[todo] labels: ${labels} artists: ${artists}, albums: ${albums}, tracks: ${tracks}`));
 };
 
 let urlPoolRegexp = /^https?:\/\/([^.]+)\.bandcamp\.com\/?(artists|album|track)?(?:\/([^\#\/?]+))?(\#[\s\S]*)?$/
@@ -74,21 +76,21 @@ while(urlPool.length>0) {
 	let url = urlPool.shift() as string;
 	let result = url.match(urlPoolRegexp);
 	if(!result) {
-		console.warn(`could not understand ${url}: skipping.`);
+		log(`could not understand ${url}: skipping.`);
 		continue;
 	}
 	let artist = result[1];
 	let urlType = result[2];
 	let id = result[3];
 	let hash = result[4] || "";
-	// console.log(url,artist,urlType,id);
+	// log(url,artist,urlType,id);
 	switch (urlType) {
 		case "artists":{// this is a label
 			let r = await fetch(`https://${artist}.bandcamp.com/artists`);
 			let string = await r.text();
 			let results = string.match(/https:\/\/[^\.]+\.bandcamp\.com\?label=/g);
 			if(!results) {
-				console.warn(`could not find any artists on https://${artist}.bandcamp.com/artists: skipping.`);
+				log(`could not find any artists on https://${artist}.bandcamp.com/artists: skipping.`);
 				continue;
 			}
 			let artists = results.filter((v:string,i:number,a:string[])=>a.indexOf(v)===i).map((t)=>t.slice(0,-7)+`#label=${artist}`);
@@ -100,7 +102,7 @@ while(urlPool.length>0) {
 			let string = await r.text();
 			let results = string.match(/track\/[^\"?&#]+/g);
 			if(!results) {
-				console.warn(`could not find any tracks on https://${artist}.bandcamp.com/album/${id}: skipping.`);
+				log(`could not find any tracks on https://${artist}.bandcamp.com/album/${id}: skipping.`);
 				continue;
 			}
 			let tracks = results.filter((v:string,i:number,a:string[])=>a.indexOf(v)===i).map((t)=>`https://${artist}.bandcamp.com/${t}#album=${id}`+hash);
@@ -122,11 +124,11 @@ while(urlPool.length>0) {
 			let string = (await r.text()).replace(/&amp;/g,"&");
 			let result = string.match(/https:[^:]+stream\/[\s\S]*?&quot/g);
 			if(!result) {
-				console.warn(`could not find a download url on ${url}: skipping.`);
+				log(`could not find a download url on ${url}: skipping.`);
 				continue;
 			}
 			if(result.length!==1) {
-				console.warn(`found more than one download url on ${url}: skipping.`);
+				log(`found more than one download url on ${url}: skipping.`);
 				continue;
 			}
 			let fileUrl = result[0];
@@ -136,11 +138,11 @@ while(urlPool.length>0) {
 				track = sanitizeFileName(he.decode(optionalOverwrites[1]));
 				if(optionalOverwrites[2]) album = sanitizeFileName(he.decode(optionalOverwrites[2]));
 				artist = sanitizeFileName(he.decode(optionalOverwrites[3]));
-			}  else console.warn(`overwrites failed on: ${url}`);
+			}  else log(`overwrites failed on: ${url}`);
 
 			let path = pattern.replace(/{label}/g,label).replace(/{artist}/g,artist).replace(/{album}/g,album).replace(/{track}/g,track)+".mp3";
 			if(await exists(path)) {
-				console.warn(`already downloaded ${path} from ${url}: skipping.`);
+				log(`already downloaded ${path} from ${url}: skipping.`);
 				continue;
 			}
 
@@ -153,7 +155,7 @@ while(urlPool.length>0) {
 			let string = await r.text();
 			let results = string.match(/(?:track|album)\/[^\"]+/g);
 			if(!results) {
-				console.warn(`could not find any albums or tracks on https://${artist}.bandcamp.com/music: skipping.`);
+				log(`could not find any albums or tracks on https://${artist}.bandcamp.com/music: skipping.`);
 				continue;
 			}
 			for(let i=0; i<results.length; i++) {
