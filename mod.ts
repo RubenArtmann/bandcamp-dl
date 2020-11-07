@@ -22,7 +22,6 @@ for(let i=0; i<Deno.args.length; i++) {
 		urlPool.push(arg);
 	}
 }
-if(urlPool.length<1) throw new Error("No Url given!");
 
 const sleep = (time: number)=>new Promise(resolve=>setTimeout(resolve, time));
 
@@ -44,7 +43,7 @@ const sanitizeFileName = (string: string)=>{
 	return string;
 };
 
-const log = (...args:any[])=>console.log("\n"+args[0],...args.slice(1));
+const log = (...args:any[])=>console.log("\r\x1b[0J"+args[0],...args.slice(1));
 const logStatus = (urlPool: string[])=>{
 	let labels = 0;
 	let artists = 0;
@@ -53,7 +52,7 @@ const logStatus = (urlPool: string[])=>{
 	for(let i=0; i<urlPool.length; i++) {
 		let result = urlPool[i].match(urlPoolRegexp);
 		if(!result) {
-			log(`could not understand ${urlPool[i]}: skipping.`);
+			log(`could not understand ${urlPool[i]}: ignoring in status report.`);
 			continue;
 		}
 		let artist = result[1];
@@ -64,11 +63,12 @@ const logStatus = (urlPool: string[])=>{
 		if(urlType === "album") albums++;
 		if(urlType === "track") tracks++;
 	}
-	Deno.stdout.writeSync(new TextEncoder().encode(`\r[todo] labels: ${labels} artists: ${artists}, albums: ${albums}, tracks: ${tracks}`));
+	Deno.stdout.writeSync(new TextEncoder().encode(`\r\x1b[0J[todo] labels: ${labels} artists: ${artists}, albums: ${albums}, tracks: ${tracks}`));
 };
 
-let urlPoolRegexp = /^https?:\/\/([^.]+)\.bandcamp\.com\/?(artists|album|track)?(?:\/([^\#\/?]+))?(\#[\s\S]*)?$/
+let urlPoolRegexp = /^https?:\/\/([^.]+)\.bandcamp\.com\/?(artists|album|track)?(?:\/([^\#\/?]+))?(\#[\s\S]*)?$/;
 
+if(urlPool.length<1) throw new Error("No Url given!");
 while(urlPool.length>0) {
 	await sleep(delay);
 	logStatus(urlPool);
@@ -165,3 +165,4 @@ while(urlPool.length>0) {
 		break;
 	}
 }
+log("done!");
