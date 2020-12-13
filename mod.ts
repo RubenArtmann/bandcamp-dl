@@ -9,7 +9,7 @@ const slug = _slug as (string: string,options: {})=>string;
 let urlPool: string[] = [];
 let pattern = "./downloads/{artist}/{album}/{track}";
 let delay = 300;
-let slugify = false;
+let slugify = true;
 for(let i=0; i<Deno.args.length; i++) {
 	let arg = Deno.args[i];
 	if(arg.startsWith("-o=")) {
@@ -36,7 +36,7 @@ const sanitizeFileName = (string: string)=>{
 	if(slugify) {
 		string = slug(string,{
 			maintainCase: true,
-			custom: ["'","(",")","+",",",";","=","#","[","]","@"]
+			custom: ["'","(",")","+",",",";","=","#","[","]","@"].reduce((o,v)=>{return {[v]:v,...o};},{})
 		});
 	}
 	string = string.replace(/\s/g,"_").replace(/[<>\?\*\:\"]/g,"").replace(/^\-/,"").replace(/^\.*$/,"dots");
@@ -100,12 +100,12 @@ while(urlPool.length>0) {
 		case "album":{
 			let r = await fetch(`https://${artist}.bandcamp.com/album/${id}`);
 			let string = await r.text();
-			let results = string.match(/track\/[^\"?&#]+/g);
+			let results = string.match(/info_link">\s*<a href="\/track\/[^\"?&#]+/g);
 			if(!results) {
 				log(`could not find any tracks on https://${artist}.bandcamp.com/album/${id}: skipping.`);
 				continue;
 			}
-			let tracks = results.filter((v:string,i:number,a:string[])=>a.indexOf(v)===i).map((t)=>`https://${artist}.bandcamp.com/${t}#album=${id}`+hash);
+			let tracks = results.map(s=>(s.match(/track\/[^\"?&#]+/)||[null])[0]).filter(e=>e!==null).map((t)=>`https://${artist}.bandcamp.com/${t}#album=${id}`+hash);
 			urlPool.push(...tracks);
 		}
 		break;
@@ -133,7 +133,7 @@ while(urlPool.length>0) {
 			}
 			let fileUrl = result[0];
 
-			let optionalOverwrites = string.match(/<div id="name-section">\s*<h2 class="trackTitle">\s*([^<]+?)\s*<\/h2>\s*<h3 class="albumTitle">\s*(?:from\s*<span>\s*<a href="[^"]+"><span class="fromAlbum">([^<]+)<\/span><\/a><\/span>\s*)?by\s*<span>\s*<a href="[^"]+">([^<]+)<\/a>/)
+			let optionalOverwrites = string.match(/<div id="name-section">\s*<h2 class="trackTitle">\s*([^<]+?)\s*<\/h2>\s*<h3 class="albumTitle">\s*(?:from\s*<span>\s*<a href="[^"]+"><span class="fromAlbum">([^<]+)<\/span><\/a><\/span>\s*)?by\s*<span>\s*<a href="[^"]+">([^<]+)<\/a>/);
 			if(optionalOverwrites) {
 				track = sanitizeFileName(he.decode(optionalOverwrites[1]));
 				if(optionalOverwrites[2]) album = sanitizeFileName(he.decode(optionalOverwrites[2]));
