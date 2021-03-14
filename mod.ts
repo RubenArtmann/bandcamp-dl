@@ -3,7 +3,7 @@ import { exists } from "https://deno.land/std@0.74.0/fs/exists.ts";
 import _he from "https://jspm.dev/npm:he@1.2.0!cjs";
 const he = _he as {decode: (string:string)=>string};
 
-import _slug from "https://jspm.dev/limax";
+import _slug from "https://jspm.dev/limax@2.0.0";
 const slug = _slug as (string: string,options: {})=>string;
 
 let urlPool: string[] = [];
@@ -16,8 +16,11 @@ for(let i=0; i<Deno.args.length; i++) {
 		pattern = arg.slice(3);
 	}  else  if(arg.startsWith("-d=")) {
 		delay = parseInt(arg.slice(3));
-	}  else  if(arg.startsWith("-s")) {
+	}  else  if(arg === "-s") {
 		slugify = !slugify;
+	}  else  if(arg === "--upgrade") {
+		console.log("run deno install -fr --name=bandcamp-dl --allow-net --allow-read --allow-write --no-check https://raw.githubusercontent.com/RubenArtmann/bandcamp-dl/main/mod.ts");
+		Deno.exit();
 	}  else  {
 		urlPool.push(arg);
 	}
@@ -43,6 +46,9 @@ const sanitizeFileName = (string: string)=>{
 	return string;
 };
 
+
+let urlPoolRegexp = /^(?:https?:\/\/)?([^.]+)\.bandcamp\.com\/?(artists|album|track)?(?:\/([^\#\/?]+))?(\#[\s\S]*)?$/;
+
 const log = (...args:any[])=>console.log("\r\x1b[0J"+args[0],...args.slice(1));
 const logStatus = (urlPool: string[])=>{
 	let labels = 0;
@@ -52,7 +58,9 @@ const logStatus = (urlPool: string[])=>{
 	for(let i=0; i<urlPool.length; i++) {
 		let result = urlPool[i].match(urlPoolRegexp);
 		if(!result) {
-			log(`could not understand ${urlPool[i]}: ignoring in status report.`);
+			log(`could not understand ${urlPool[i]}: removed.`);
+			throw new Error();
+			urlPool.splice(i,1);
 			continue;
 		}
 		let artist = result[1];
@@ -66,7 +74,8 @@ const logStatus = (urlPool: string[])=>{
 	Deno.stdout.writeSync(new TextEncoder().encode(`\r\x1b[0J[todo] labels: ${labels} artists: ${artists}, albums: ${albums}, tracks: ${tracks}`));
 };
 
-let urlPoolRegexp = /^https?:\/\/([^.]+)\.bandcamp\.com\/?(artists|album|track)?(?:\/([^\#\/?]+))?(\#[\s\S]*)?$/;
+const filterUniques = (a: string[])=>a.sort().filter((e,i,a)=>e!==a[i+1]);
+
 
 if(urlPool.length<1) throw new Error("No Url given!");
 while(urlPool.length>0) {
@@ -122,12 +131,12 @@ while(urlPool.length>0) {
 
 			let r = await fetch(url);
 			let string = (await r.text()).replace(/&amp;/g,"&");
-			let result = string.match(/https:[^:]+stream\/[\s\S]*?&quot/g);
+			let result = string.match(/https:[^:]+stream\/[^;]+?(?=[\\"]|&quot)/g);
 			if(!result) {
 				log(`could not find a download url on ${url}: skipping.`);
 				continue;
 			}
-			if(result.length!==1) {
+			if(filterUniques([...result]).length!==1) {
 				log(`found more than one download url on ${url}: skipping.`);
 				continue;
 			}
@@ -152,8 +161,12 @@ while(urlPool.length>0) {
 		
 		default:{
 			let r = await fetch(`https://${artist}.bandcamp.com/music`);
+			if(r.url !== `https://${artist}.bandcamp.com/music`) {
+				log(`got redirected to ${r.url} while fetching https://${artist}.bandcamp.com/music: skipping.`);
+				continue
+			}
 			let string = await r.text();
-			let results = string.match(/(?:track|album)\/[^\"]+/g);
+			let results = string.match(/(?:track|album)\/[^\"&?\']+/g);
 			if(!results) {
 				log(`could not find any albums or tracks on https://${artist}.bandcamp.com/music: skipping.`);
 				continue;
