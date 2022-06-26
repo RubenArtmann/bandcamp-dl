@@ -1,3 +1,10 @@
+# Archived
+### (moving away from github because of github copilot violating (free-)software licenses)
+
+
+
+
+
 # bandcamp-dl
 ### install
 1. download Deno from [here](https://deno.land/#installation)
